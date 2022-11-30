@@ -98,13 +98,23 @@ function select_idx(grid: Grid, x: i32, y: i32) -> usize? {
     return selected
 }
 
+function distance_from_all(grid: Grid, x: i32, y: i32) -> i32 {
+    mut ret: i32 = 0
+    for i in 0..grid.points.size() {
+	let p = grid.points[i]
+	ret += _abs(p.x - x) + _abs(p.y - y)
+    }
+    return ret
+}
+
 function main(args: [String]) {
     if args.size() <= 1 {
 	eprintln("usage: {} <input file>", args[0])
 	return 1
     }
 
-    let debug = false
+    let debug1 = false
+    let debug2 = false
 
     mut grid = read_grid(filename: args[1])
     mut infinite = [false; grid.points.size()]
@@ -135,13 +145,55 @@ function main(args: [String]) {
 	}
     }
     mut max_area = 0
+    mut safe_area = 0
+    mut safe_distance: i32 = 10000
+    if grid.points.size() == 6 {
+	safe_distance = 32
+    }
     for y in 0..grid.height {
 	for x in 0..grid.width {
+	    let dist = distance_from_all(grid, x, y)
+	    if dist < safe_distance {
+		safe_area += 1
+		if debug2 {
+		    let selected = select_idx(grid, x, y)
+		    if selected.has_value() {
+			let p = grid.points[selected!]
+			let d = _abs(p.x - x) + _abs(p.y - y)
+			if d == 0 {
+			    print("{:c}", selected! as! u8 + 'A' as! u8)
+			} else {
+			    print("#")
+			}
+		    } else {
+			print("#")
+		    }
+		}
+	    } else if debug2 {
+		let selected = select_idx(grid, x, y)
+		if selected.has_value() {
+		    let p = grid.points[selected!]
+		    let d = _abs(p.x - x) + _abs(p.y - y)
+		    if d == 0 {
+			print("{:c}", selected! as! u8 + 'A' as! u8)
+		    } else {
+			print(".")
+		    }
+		} else {
+		    print(".")
+		}
+	    }
 	    let selected = select_idx(grid, x, y)
 	    if selected.has_value() {
 		if infinite[selected!] {
-		    if debug {
-			print("#")
+		    if debug1 {
+			let p = grid.points[selected!]
+			let d = _abs(p.x - x) + _abs(p.y - y)
+			if d == 0 {
+			    print("{:c}", selected! as! u8 + 'A' as! u8)
+			} else {
+			    print("#")
+			}
 		    }
 		    continue
 		}
@@ -149,7 +201,7 @@ function main(args: [String]) {
 		if areas[selected!] > max_area {
 		    max_area = areas[selected!]
 		}
-		if not debug {
+		if not debug1 {
 		    continue
 		}
 		let p = grid.points[selected!]
@@ -159,14 +211,15 @@ function main(args: [String]) {
 		} else {
 		    print("{:c}", selected! as! u8 + 'a' as! u8)
 		}
-	    } else if debug {
+	    } else if debug1 {
 		print(".")
 	    }
 	}
-	if debug {
+	if debug1 or debug2 {
 	    println()
 	}
     }
 
     println("Part 1: {}", max_area)
+    println("Part 2: {}", safe_area)
 }
