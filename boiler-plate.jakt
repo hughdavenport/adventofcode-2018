@@ -10,7 +10,9 @@ function read_lines(filename: String) throws -> [String] {
 			builder.append(b)
 		}
 	}
-	ret.push(builder.to_string())
+	if not builder.is_empty() {
+		ret.push(builder.to_string())
+	}
 	return ret
 }
 
