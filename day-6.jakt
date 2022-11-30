@@ -104,6 +104,8 @@ function main(args: [String]) {
 	return 1
     }
 
+    let debug = false
+
     mut grid = read_grid(filename: args[1])
     mut infinite = [false; grid.points.size()]
     mut areas = [0; grid.points.size()]
@@ -138,12 +140,17 @@ function main(args: [String]) {
 	    let selected = select_idx(grid, x, y)
 	    if selected.has_value() {
 		if infinite[selected!] {
-		    print("#")
+		    if debug {
+			print("#")
+		    }
 		    continue
 		}
 		areas[selected!] += 1
 		if areas[selected!] > max_area {
 		    max_area = areas[selected!]
+		}
+		if not debug {
+		    continue
 		}
 		let p = grid.points[selected!]
 		let d = _abs(p.x - x) + _abs(p.y - y)
@@ -152,11 +159,13 @@ function main(args: [String]) {
 		} else {
 		    print("{:c}", selected! as! u8 + 'a' as! u8)
 		}
-	    } else {
+	    } else if debug {
 		print(".")
 	    }
 	}
-	println()
+	if debug {
+	    println()
+	}
     }
 
     println("Part 1: {}", max_area)
