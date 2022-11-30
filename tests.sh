@@ -97,7 +97,7 @@ for DAY in $(seq "${START}" "${END}"); do
   }
   INPUT_PREFIX="inputs/day-${DAY}"
   OUTPUT_PREFIX="outputs/day-${DAY}"
-  echo -n "Testing compiling ${JAKT_FILE}: "
+  echo "Testing compiling ${JAKT_FILE}: "
   rm "./build/day-${DAY}" 2>/dev/null
   ${JAKT} "$JAKT_FILE"
   if [ $? -eq 0 -a -x "./build/day-${DAY}" ]; then

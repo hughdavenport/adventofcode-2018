@@ -1,0 +1,163 @@
+function read_lines(filename: String) throws -> [String] {
+    mut ret: [String] = []
+    mut file = File::open_for_reading(filename)
+    mut builder = StringBuilder::create()
+    for b in file.read_all() {
+	if b == '\n' as! u8 {
+	    ret.push(builder.to_string())
+	    builder = StringBuilder::create()
+	} else {
+	    builder.append(b)
+	}
+    }
+    if not builder.is_empty() {
+	ret.push(builder.to_string())
+    }
+    return ret
+}
+
+struct Point {
+    x: i32
+    y: i32
+}
+
+struct Grid {
+    points: [Point]
+    width: i32
+    height: i32
+}
+
+
+function _abs(anon a: i32) -> i32 {
+    if a < 0 {
+	return -a
+    }
+    return a
+}
+
+function read_grid(filename: String) throws -> Grid {
+    mut points: [Point] = []
+
+    mut min: Optional<Point> = None
+    mut max: Optional<Point> = None
+
+    for line in read_lines(filename) {
+	let split = line.split(',')
+	let p = Point(
+	    x: split[0].to_int()!
+	    y: split[1].to_int()!
+	)
+	if not min.has_value() {
+	    min = Point(x: p.x, y: p.y)
+	} else {
+	    if p.x < min!.x {
+		min!.x = p.x
+	    }
+	    if p.y < min!.y {
+		min!.y = p.y
+	    }
+	}
+	if not max.has_value() {
+	    max = Point(x: p.x, y: p.y)
+	} else {
+	    if p.x > max!.x {
+		max!.x = p.x
+	    }
+	    if p.y > max!.y {
+		max!.y = p.y
+	    }
+	}
+	points.push(p)
+    }
+    // Add a border, used to test if infinite
+    min!.x -= 1
+    min!.y -= 1
+    max!.x += 2
+    max!.y += 2
+    // Transpose the points to fit just past 0, 0
+    mut ret: [Point] = []
+    for p in points {
+	ret.push(Point(x: p.x - min!.x, y: p.y - min!.y))
+    }
+    return Grid(points: ret, width: max!.x - min!.x, height: max!.y - min!.y)
+}
+
+function select_idx(grid: Grid, x: i32, y: i32) -> usize? {
+    mut selected: usize? = None
+    mut min = grid.width + grid.height
+    for i in 0..grid.points.size() {
+	let p = grid.points[i]
+	let d = _abs(p.x - x) + _abs(p.y - y)
+	if d < min {
+	    min = d
+	    selected = i
+	} else if d == min {
+	    selected = None
+	}
+    }
+    return selected
+}
+
+function main(args: [String]) {
+    if args.size() <= 1 {
+	eprintln("usage: {} <input file>", args[0])
+	return 1
+    }
+
+    mut grid = read_grid(filename: args[1])
+    mut infinite = [false; grid.points.size()]
+    mut areas = [0; grid.points.size()]
+
+    for x in 0..grid.width {
+	let selected = select_idx(grid, x, y: 0)
+	if selected.has_value() {
+	    infinite[selected!] = true
+	}
+    }
+    for x in 0..grid.width {
+	let selected = select_idx(grid, x, y: grid.height - 1)
+	if selected.has_value() {
+	    infinite[selected!] = true
+	}
+    }
+    for y in 0..grid.height {
+	let selected = select_idx(grid, x: 0, y)
+	if selected.has_value() {
+	    infinite[selected!] = true
+	}
+    }
+    for y in 0..grid.height {
+	let selected = select_idx(grid, x: grid.width - 1, y)
+	if selected.has_value() {
+	    infinite[selected!] = true
+	}
+    }
+    mut max_area = 0
+    for y in 0..grid.height {
+	for x in 0..grid.width {
+	    let selected = select_idx(grid, x, y)
+	    if selected.has_value() {
+		if infinite[selected!] {
+		    print("#")
+		    continue
+		}
+		areas[selected!] += 1
+		if areas[selected!] > max_area {
+		    max_area = areas[selected!]
+		}
+		let p = grid.points[selected!]
+		let d = _abs(p.x - x) + _abs(p.y - y)
+		if d == 0 {
+		    print("{:c}", selected! as! u8 + 'A' as! u8)
+		} else {
+		    print("{:c}", selected! as! u8 + 'a' as! u8)
+		}
+	    } else {
+		print(".")
+	    }
+	}
+	println()
+    }
+
+    println("Part 1: {}", max_area)
+}

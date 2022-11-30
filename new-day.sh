@@ -28,7 +28,7 @@ pushd $(dirname "${0}") >/dev/null
 [ ! -f "day-${DAY}.jakt" ] && {
   cp boiler-plate.jakt "day-${DAY}.jakt"
   mkdir -p inputs
-  curl --silent "https://adventofcode.com/2021/day/${DAY}/input" -H "COOKIE: session=${SESSION_COOKIE}" >"inputs/day-${DAY}.input"
+  curl --silent "https://adventofcode.com/2018/day/${DAY}/input" -H "COOKIE: session=${SESSION_COOKIE}" >"inputs/day-${DAY}.input"
   mkdir -p outputs
   touch "outputs/day-${DAY}.output"
   vim "inputs/day-${DAY}.example"
